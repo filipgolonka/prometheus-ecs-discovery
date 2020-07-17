@@ -54,6 +54,7 @@ var interval = flag.Duration("config.scrape-interval", 60*time.Second, "interval
 var times = flag.Int("config.scrape-times", 0, "how many times to scrape before exiting (0 = infinite)")
 var roleArn = flag.String("config.role-arn", "", "ARN of the role to assume when scraping the AWS API (optional)")
 var prometheusPortLabel = flag.String("config.port-label", "PROMETHEUS_EXPORTER_PORT", "Docker label to define the scrape port of the application (if missing an application won't be scraped)")
+var prometheusTaskLabel = flag.String("config.label", "", "Docker label to define tasks to scrape. Example: convox.app=livevent-hub")
 var prometheusPathLabel = flag.String("config.path-label", "PROMETHEUS_EXPORTER_PATH", "Docker label to define the scrape path of the application")
 var prometheusFilterLabel = flag.String("config.filter-label", "", "Docker label (and optionally value) to require to scrape the application")
 var prometheusServerNameLabel = flag.String("config.server-name-label", "PROMETHEUS_EXPORTER_SERVER_NAME", "Docker label to define the server name")
@@ -189,6 +190,11 @@ func (t *AugmentedTask) ExporterInformation() []*PrometheusTaskInfo {
 		filter = strings.Split(*prometheusFilterLabel, "=")
 	}
 
+	var prometheusTaskLabelFilter []string
+	if *prometheusTaskLabel != "" {
+		prometheusTaskLabelFilter = strings.Split(*prometheusTaskLabel, "=")
+	}
+
 	for _, i := range t.Containers {
 		// Let's go over the containers to see which ones are defined
 		var d ecs.ContainerDefinition
@@ -222,6 +228,22 @@ func (t *AugmentedTask) ExporterInformation() []*PrometheusTaskInfo {
 			if port := i.NetworkBindings[0].HostPort; port != nil {
 				hostPort = *port
 			}
+		} else if len(prometheusTaskLabelFilter) == 2 {
+			v, ok := d.DockerLabels[prometheusTaskLabelFilter[0]]
+			if !ok {
+				// Nope, no Prometheus label in this container def.
+				// This container is no good.  We continue.
+				continue
+			}
+
+			if v != prometheusTaskLabelFilter[1] {
+				// Nope, the label value does not match requirements
+				continue
+			}
+
+			hostPort = 80
+
+			fmt.Println(v)
 		} else {
 			v, ok := d.DockerLabels[*prometheusPortLabel]
 			if !ok {
@@ -289,9 +311,13 @@ func (t *AugmentedTask) ExporterInformation() []*PrometheusTaskInfo {
 			DockerImage:   *d.Image,
 		}
 
-		exporterPath, ok = d.DockerLabels[*prometheusPathLabel]
-		if ok {
-			labels.MetricsPath = exporterPath
+		if len(prometheusTaskLabelFilter) == 2 {
+			labels.MetricsPath = "/metrics"
+		} else {
+			exporterPath, ok = d.DockerLabels[*prometheusPathLabel]
+			if ok {
+				labels.MetricsPath = exporterPath
+			}
 		}
 
 		ret = append(ret, &PrometheusTaskInfo{
