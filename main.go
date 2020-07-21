@@ -241,7 +241,7 @@ func (t *AugmentedTask) ExporterInformation() []*PrometheusTaskInfo {
 				continue
 			}
 
-			hostPort = 80
+			hostPort = 8080
 
 			fmt.Println(v)
 		} else {
