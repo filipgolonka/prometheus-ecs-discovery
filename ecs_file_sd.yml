@@ -1,0 +1,12 @@
+- targets:
+  - 10.0.3.250:32769
+  labels:
+    task_arn: arn:aws:ecs:eu-north-1:751980671641:task/86e72e18-5322-4fdc-b787-f863823c479d
+    task_name: pro-eventhub-eun-1-livevent-hub-ServiceLiveventhub-WO916QFB5DO3-service-liveventhub
+    task_revision: "15"
+    task_group: service:pro-eventhub-eun-1-livevent-hub-ServiceLiveventhub-WO916QFB5DO3-Service-1VYOGVKFYPCN4
+    cluster_arn: arn:aws:ecs:eu-north-1:751980671641:cluster/pro-eventhub-eun-1-Cluster-ilUOuChV89Yd
+    container_name: liveventhub
+    container_arn: arn:aws:ecs:eu-north-1:751980671641:container/b397a814-a510-479b-b428-054efcf0cc22
+    docker_image: 751980671641.dkr.ecr.eu-north-1.amazonaws.com/pro-e-regis-1qcu5npo4ch9b:liveventhub.BWXHWNVIQQW
+    __metrics_path__: /metrics

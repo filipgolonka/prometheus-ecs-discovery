@@ -241,9 +241,9 @@ func (t *AugmentedTask) ExporterInformation() []*PrometheusTaskInfo {
 				continue
 			}
 
-			hostPort = 32768
+			hostPort = *i.NetworkBindings[0].HostPort
 
-			fmt.Println(v)
+			fmt.Println(v, hostPort)
 		} else {
 			v, ok := d.DockerLabels[*prometheusPortLabel]
 			if !ok {
